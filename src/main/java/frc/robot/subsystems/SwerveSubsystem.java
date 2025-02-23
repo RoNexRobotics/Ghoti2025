@@ -82,8 +82,6 @@ public class SwerveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
 
-    SmartDashboard.putBoolean("MegaTag2", SwerveConstants.kMegaTag2Enabled);
-
     ChassisSpeeds robotVelocity = m_swerve.getRobotVelocity();
     double velocity = Math.hypot(robotVelocity.vxMetersPerSecond, robotVelocity.vyMetersPerSecond) * 2.23694;
     SmartDashboard.putNumber("Speedometer (MPH)", Math.round(velocity * 1000.0) / 1000.0);
@@ -117,7 +115,7 @@ public class SwerveSubsystem extends SubsystemBase {
       if (mt1 != null && !((mt1.tagCount == 1 && mt1.rawFiducials.length == 1 &&
           (mt1.rawFiducials[0].ambiguity > 0.7 || mt1.rawFiducials[0].distToCamera > 3)) ||
           (mt1.tagCount == 0))) {
-        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(.5, .5, 0.5));
+        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(.5, .5, .5));
         m_swerve.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
       }
 

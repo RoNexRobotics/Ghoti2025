@@ -71,9 +71,9 @@ public class RobotContainer {
 
   private void configureBindings() {
 
-    m_driverController.leftBumper().onTrue(new InstantCommand(m_swerveSubsystem::resetGyro, m_swerveSubsystem));
+    m_driverController.leftBumper().onTrue(new InstantCommand(m_swerveSubsystem::zeroGyro, m_swerveSubsystem));
 
-    m_driverController.rightBumper().onTrue(new InstantCommand(m_swerveSubsystem::resetPose, m_swerveSubsystem));
+    m_driverController.rightBumper().onTrue(new InstantCommand(m_swerveSubsystem::resetOdometry, m_swerveSubsystem));
 
     m_driverController.x()
         .whileTrue(m_swerveSubsystem.alignWithAprilTag(18,

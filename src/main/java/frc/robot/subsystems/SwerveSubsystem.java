@@ -71,12 +71,14 @@ public class SwerveSubsystem extends SubsystemBase {
     m_swerve.setAngularVelocityCompensation(true, true, 0.1);
     m_swerve.setModuleEncoderAutoSynchronize(true, 1);
     m_swerve.setAutoCenteringModules(false);
+    m_swerve.setMotorIdleMode(false);
 
     if (SwerveDriveTelemetry.isSimulation) {
       m_swerve.resetOdometry(new Pose2d(7.588, 4.037, Rotation2d.fromDegrees(0)));
     }
 
     setupPathPlanner();
+    // RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::zeroGyroWithAlliance));
   }
 
   @Override
@@ -215,15 +217,34 @@ public class SwerveSubsystem extends SubsystemBase {
     drive(0, 0, m_swerve.getOdometryHeading().getSin(), m_swerve.getOdometryHeading().getCos());
   }
 
-  public void resetGyro() {
+  public void zeroGyro() {
     m_swerve.zeroGyro();
+  }
+
+  private boolean isRedAlliance() {
+    var alliance = DriverStation.getAlliance();
+    return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
+  }
+
+  public void zeroGyroWithAlliance() {
+    if (isRedAlliance()) {
+      zeroGyro();
+      // Set the pose 180 degrees
+      resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
+    } else {
+      zeroGyro();
+    }
   }
 
   public Pose2d getPose() {
     return m_swerve.getPose();
   }
 
-  public void resetPose() {
+  public void resetOdometry() {
     m_swerve.resetOdometry(Pose2d.kZero);
+  }
+
+  public void resetOdometry(Pose2d pose) {
+    m_swerve.resetOdometry(pose);
   }
 }

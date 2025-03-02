@@ -44,14 +44,29 @@ public class RobotContainer {
     registerNamedCommands();
     configureBindings();
 
-    Command driveAngularVelocity = m_swerveSubsystem.driveCommand(
-        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriverControllerTranslationDeadband),
-        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriverControllerTranslationDeadband),
-        () -> -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriverControllerRotationDeadband),
-        () -> -MathUtil.applyDeadband(m_driverController.getRightY(), OIConstants.kDriverControllerRotationDeadband))
+    Command allianceRelativeDirectAngle = m_swerveSubsystem.driveCommand(
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(),
+            OIConstants.kDriverControllerTranslationDeadband),
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(),
+            OIConstants.kDriverControllerTranslationDeadband),
+        () -> -MathUtil.applyDeadband(m_driverController.getRightX(),
+            OIConstants.kDriverControllerRotationDeadband),
+        () -> -MathUtil.applyDeadband(m_driverController.getRightY(),
+            OIConstants.kDriverControllerRotationDeadband))
         .beforeStarting(new InstantCommand(() -> m_swerveSubsystem.setCommandedHeading(), m_swerveSubsystem));
 
-    m_swerveSubsystem.setDefaultCommand(driveAngularVelocity);
+    // Command allianceRelativeDirectAngle =
+    // m_swerveSubsystem.driveFieldOriented(SwerveInputStream.of(
+    // m_swerveSubsystem.getSwerveDrive(),
+    // () -> -m_driverController.getLeftY(),
+    // () -> -m_driverController.getLeftX())
+    // .withControllerHeadingAxis(() -> -m_driverController.getRightX(), () ->
+    // -m_driverController.getRightY())
+    // .headingWhile(true)
+    // .deadband(OIConstants.kDriverControllerTranslationDeadband)
+    // .allianceRelativeControl(true));
+
+    m_swerveSubsystem.setDefaultCommand(allianceRelativeDirectAngle);
 
     // Send the auto chooser to the dashboard
     m_autoChooser = AutoBuilder.buildAutoChooser();
@@ -83,6 +98,9 @@ public class RobotContainer {
         Units.inchesToMeters(24),
         Units.inchesToMeters(0),
         Rotation2d.fromDegrees(180))));
+
+    m_driverController.a().onTrue(new InstantCommand(m_swerveSubsystem::moduleStateTest1, m_swerveSubsystem));
+    m_driverController.b().onTrue(new InstantCommand(m_swerveSubsystem::moduleStateTest2, m_swerveSubsystem));
   }
 
   public Command getAutonomousCommand() {

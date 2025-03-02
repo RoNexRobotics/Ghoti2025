@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
@@ -25,6 +26,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -71,7 +73,7 @@ public class SwerveSubsystem extends SubsystemBase {
     m_swerve.setAngularVelocityCompensation(true, true, 0.1);
     m_swerve.setModuleEncoderAutoSynchronize(true, 1);
     m_swerve.setAutoCenteringModules(false);
-    m_swerve.setMotorIdleMode(false);
+    m_swerve.setMotorIdleMode(true);
 
     if (SwerveDriveTelemetry.isSimulation) {
       m_swerve.resetOdometry(new Pose2d(7.588, 4.037, Rotation2d.fromDegrees(0)));
@@ -199,11 +201,21 @@ public class SwerveSubsystem extends SubsystemBase {
     Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX,
         translationY), 0.8);
 
+    if (isRedAlliance()) {
+      scaledInputs = new Translation2d(-scaledInputs.getX(), -scaledInputs.getY());
+    }
+
     m_swerve.driveFieldOriented(m_swerve.swerveController.getTargetSpeeds(scaledInputs.getX(), scaledInputs.getY(),
         headingX,
         headingY,
         m_swerve.getOdometryHeading().getRadians(),
         m_swerve.getMaximumChassisVelocity()));
+  }
+
+  public Command driveFieldOriented(Supplier<ChassisSpeeds> velocity) {
+    return run(() -> {
+      m_swerve.driveFieldOriented(velocity.get());
+    });
   }
 
   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY,
@@ -221,21 +233,6 @@ public class SwerveSubsystem extends SubsystemBase {
     m_swerve.zeroGyro();
   }
 
-  private boolean isRedAlliance() {
-    var alliance = DriverStation.getAlliance();
-    return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
-  }
-
-  public void zeroGyroWithAlliance() {
-    if (isRedAlliance()) {
-      zeroGyro();
-      // Set the pose 180 degrees
-      resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
-    } else {
-      zeroGyro();
-    }
-  }
-
   public Pose2d getPose() {
     return m_swerve.getPose();
   }
@@ -246,5 +243,32 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public void resetOdometry(Pose2d pose) {
     m_swerve.resetOdometry(pose);
+  }
+
+  public SwerveDrive getSwerveDrive() {
+    return m_swerve;
+  }
+
+  private boolean isRedAlliance() {
+    var alliance = DriverStation.getAlliance();
+    return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
+  }
+
+  public void moduleStateTest1() {
+    m_swerve.setModuleStates(new SwerveModuleState[] {
+        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+        new SwerveModuleState(0, Rotation2d.fromDegrees(0))
+    }, false);
+  }
+
+  public void moduleStateTest2() {
+    m_swerve.setModuleStates(new SwerveModuleState[] {
+        new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
+        new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
+        new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
+        new SwerveModuleState(0, Rotation2d.fromDegrees(90))
+    }, false);
   }
 }

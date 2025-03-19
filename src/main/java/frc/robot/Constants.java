@@ -14,6 +14,19 @@ public final class Constants {
         public static final boolean kMegaTag2Enabled = true;
     }
 
+    public static final class ElevatorConstants {
+        public static final int kMotor1Id = 13;
+        public static final int kMotor2Id = 14;
+    }
+
+    public static final class ShooterConstants {
+        public static final int kMotorId = 15;
+    }
+
+    public static final class ClimberConstants {
+        public static final int kMotorId = 16;
+    }
+
     public static final class OIConstants {
         public static final int kDriverControllerPort = 0;
         public static final double kDriverControllerTranslationDeadband = 0.1;

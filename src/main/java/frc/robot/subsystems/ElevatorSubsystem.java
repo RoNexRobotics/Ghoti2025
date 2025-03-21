@@ -4,23 +4,22 @@
 
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ElevatorConstants;
 
 public class ElevatorSubsystem extends SubsystemBase {
-  // private final SparkMax m_elevatorMotor1 = new
-  // SparkMax(ElevatorConstants.kMotor1Id, MotorType.kBrushed);
-  // private final SparkMax m_elevatorMotor2 = new
-  // SparkMax(ElevatorConstants.kMotor2Id, MotorType.kBrushed);
   private final VictorSPX m_motor1 = new VictorSPX(ElevatorConstants.kMotor1Id);
   private final VictorSPX m_motor2 = new VictorSPX(ElevatorConstants.kMotor2Id);
 
@@ -52,12 +51,12 @@ public class ElevatorSubsystem extends SubsystemBase {
       m_calibrated = true;
     }
 
-    if (m_calibrated) {
-      // If the elevator is calibrated, go to the setpoint
-      double pidOutput = m_pidController.calculate(getHeightInches(), m_setpoint);
-      m_motor1.set(VictorSPXControlMode.PercentOutput, pidOutput);
-      m_motor2.set(VictorSPXControlMode.PercentOutput, pidOutput);
-    }
+    // if (m_calibrated) {
+    // // If the elevator is calibrated, go to the setpoint
+    // double pidOutput = m_pidController.calculate(getHeightInches(), m_setpoint);
+    // m_motor1.set(VictorSPXControlMode.PercentOutput, pidOutput);
+    // m_motor2.set(VictorSPXControlMode.PercentOutput, pidOutput);
+    // }
   }
 
   private void setHeightInches(double heightInches) {
@@ -67,5 +66,12 @@ public class ElevatorSubsystem extends SubsystemBase {
   private double getHeightInches() {
     return m_encoder.getDistance() / 256; // 256 ticks per revolution gives us a distance in revolutions
     // TODO: Convert revolutions to inches from the ground using gearbox info
+  }
+
+  public Command setMotorSpeed(DoubleSupplier speed) {
+    return run(() -> {
+      m_motor1.set(VictorSPXControlMode.PercentOutput, speed.getAsDouble());
+      m_motor2.set(VictorSPXControlMode.PercentOutput, speed.getAsDouble());
+    });
   }
 }

@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.AlignWithNearestSectorTag;
+import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Elastic;
 import frc.robot.util.Elastic.Notification;
@@ -28,9 +29,13 @@ import frc.robot.util.Elastic.Notification.NotificationLevel;
 public class RobotContainer {
   // Controllers
   private final CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
+  private final CommandXboxController m_operatorController = new CommandXboxController(
+      OIConstants.kOperatorControllerPort);
 
   // Subsystems
   private final SwerveSubsystem m_swerveSubsystem = new SwerveSubsystem();
+
+  private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
 
   // Commands
 
@@ -66,7 +71,9 @@ public class RobotContainer {
     // .deadband(OIConstants.kDriverControllerTranslationDeadband)
     // .allianceRelativeControl(true));
 
-    m_swerveSubsystem.setDefaultCommand(allianceRelativeDirectAngle);
+    // m_swerveSubsystem.setDefaultCommand(allianceRelativeDirectAngle);
+
+    m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.setMotorSpeed(() -> m_operatorController.getRawAxis(3)));
 
     // Send the auto chooser to the dashboard
     m_autoChooser = AutoBuilder.buildAutoChooser();
@@ -76,12 +83,13 @@ public class RobotContainer {
   }
 
   private void registerNamedCommands() {
-    NamedCommands.registerCommand("Test", Commands.none());
     NamedCommands.registerCommand("AlignWithNearestSectorTag", new AlignWithNearestSectorTag(m_swerveSubsystem,
         new Transform2d(
             Units.inchesToMeters(24),
             Units.inchesToMeters(0),
             Rotation2d.fromDegrees(180))));
+
+    NamedCommands.registerCommand("Raise Elevator L4", Commands.none());
   }
 
   private void configureBindings() {

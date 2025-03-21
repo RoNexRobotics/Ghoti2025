@@ -12,8 +12,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ClimberConstants;
 
 public class ClimberSubsystem extends SubsystemBase {
-  // private final SparkMax m_climberMotor = new
-  // SparkMax(ClimberConstants.kMotorId, MotorType.kBrushed);
   private final VictorSPX m_motor = new VictorSPX(ClimberConstants.kMotorId);
 
   /** Creates a new ClimberSubsystem. */

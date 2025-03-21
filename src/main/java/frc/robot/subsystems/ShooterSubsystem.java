@@ -12,8 +12,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
 
 public class ShooterSubsystem extends SubsystemBase {
-  // private final SparkMax m_motor = new SparkMax(ShooterConstants.kMotorId,
-  // MotorType.kBrushed);
   private final VictorSPX m_motor = new VictorSPX(ShooterConstants.kMotorId);
 
   /** Creates a new ShooterSubsystem. */

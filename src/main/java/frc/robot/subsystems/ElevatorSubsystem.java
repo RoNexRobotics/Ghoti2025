@@ -20,8 +20,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ElevatorConstants;
 
 public class ElevatorSubsystem extends SubsystemBase {
-  private final VictorSPX m_motor1 = new VictorSPX(ElevatorConstants.kMotor1Id);
-  private final VictorSPX m_motor2 = new VictorSPX(ElevatorConstants.kMotor2Id);
+  private final VictorSPX m_motor = new VictorSPX(ElevatorConstants.kMotor1Id);
 
   private final Encoder m_encoder = new Encoder(0, 1, false, EncodingType.k4X);
   private final DigitalInput m_lowerLimitSwitch = new DigitalInput(2);
@@ -29,17 +28,16 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   private final ProfiledPIDController m_pidController = new ProfiledPIDController(0.5, 0, 0,
       new TrapezoidProfile.Constraints(42, 42));
-  // private final ElevatorFeedforward m_ffController = new ElevatorFeedforward();
 
   private boolean m_calibrated = false;
   private double m_setpoint = 0;
 
   /** Creates a new ElevatorSubsystem. */
   public ElevatorSubsystem() {
-    // TODO: Initialize the encoder with the minimum inches from the ground
-    // TODO: Invert motor1 and/or motor2 if needed
-    m_motor1.setInverted(false);
-    m_motor2.setInverted(false);
+    m_motor.configFactoryDefault();
+
+    // TODO: Invert the motor if necessary
+    m_motor.setInverted(false);
   }
 
   @Override
@@ -47,31 +45,60 @@ public class ElevatorSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Elevator/HeightInches", getHeightInches());
 
     if (m_lowerLimitSwitch.get()) {
+      m_motor.set(VictorSPXControlMode.PercentOutput, 0);
       m_encoder.reset();
       m_calibrated = true;
     }
 
-    // if (m_calibrated) {
-    // // If the elevator is calibrated, go to the setpoint
-    // double pidOutput = m_pidController.calculate(getHeightInches(), m_setpoint);
-    // m_motor1.set(VictorSPXControlMode.PercentOutput, pidOutput);
-    // m_motor2.set(VictorSPXControlMode.PercentOutput, pidOutput);
-    // }
+    // Failsafe in case the setpoint is ever below the minimum height
+    if (m_setpoint < ElevatorConstants.kMinimumHeightInches) {
+      m_setpoint = ElevatorConstants.kMinimumHeightInches;
+    }
+
+    // Failsafe in case the setpoint is ever above the maximum height
+    if (m_setpoint > ElevatorConstants.kMaximumHeightInches) {
+      m_setpoint = ElevatorConstants.kMaximumHeightInches;
+    }
+
+    if (m_calibrated && !m_upperLimitSwitch.get()) {
+      // If the elevator is calibrated, go to the setpoint
+      double pidOutput = m_pidController.calculate(getHeightInches(), m_setpoint);
+      SmartDashboard.putNumber(ElevatorConstants.kSlash + "PID Output", pidOutput);
+
+      // m_motor.set(VictorSPXControlMode.PercentOutput, pidOutput);
+    } else if (m_upperLimitSwitch.get()) {
+      m_motor.set(VictorSPXControlMode.PercentOutput, 0);
+    } else {
+      // If the elevator is not calibrated, move down
+      m_motor.set(VictorSPXControlMode.PercentOutput, -0.1);
+    }
+  }
+
+  private double getHeightInches() {
+    return m_encoder.getDistance() / 256; // 256 ticks per revolution gives us a distance in revolutions
+    // TODO: Convert revolutions to inches from the ground using gearbox info, plus
+    // add a constant for the minimum height
+  }
+
+  public Command setHeightInchesCommand(double heightInches) {
+    return run(() -> setHeightInches(heightInches));
   }
 
   private void setHeightInches(double heightInches) {
     m_setpoint = heightInches;
   }
 
-  private double getHeightInches() {
-    return m_encoder.getDistance() / 256; // 256 ticks per revolution gives us a distance in revolutions
-    // TODO: Convert revolutions to inches from the ground using gearbox info
+  // Methods for setting the motor speed manually **if all else fails which it
+  // very well might...**
+  public Command setMotorSpeedCommand(DoubleSupplier speed) {
+    return run(() -> setMotorSpeed(speed.getAsDouble()));
   }
 
-  public Command setMotorSpeed(DoubleSupplier speed) {
-    return run(() -> {
-      m_motor1.set(VictorSPXControlMode.PercentOutput, speed.getAsDouble());
-      m_motor2.set(VictorSPXControlMode.PercentOutput, speed.getAsDouble());
-    });
+  public Command setMotorSpeedCommand(double speed) {
+    return run(() -> setMotorSpeed(speed));
+  }
+
+  private void setMotorSpeed(double speed) {
+    m_motor.set(VictorSPXControlMode.PercentOutput, speed);
   }
 }

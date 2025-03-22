@@ -88,7 +88,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     ChassisSpeeds robotVelocity = m_swerve.getRobotVelocity();
     double velocity = Math.hypot(robotVelocity.vxMetersPerSecond, robotVelocity.vyMetersPerSecond) * 2.23694;
-    SmartDashboard.putNumber("Speedometer (MPH)", Math.round(velocity * 1000.0) / 1000.0);
+    SmartDashboard.putNumber(SwerveConstants.kSlash + "Speedometer (MPH)", Math.round(velocity * 1000.0) / 1000.0);
 
     if (SwerveConstants.kMegaTag2Enabled) {
       // Limelight 3G

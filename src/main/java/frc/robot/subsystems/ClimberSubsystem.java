@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
@@ -16,11 +18,18 @@ public class ClimberSubsystem extends SubsystemBase {
 
   /** Creates a new ClimberSubsystem. */
   public ClimberSubsystem() {
+    m_motor.configFactoryDefault();
+
+    // TODO: Invert the motor if necessary
+    m_motor.setInverted(false);
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+  }
+
+  public Command setSpeedCommand(DoubleSupplier speed) {
+    return run(() -> setSpeed(speed.getAsDouble()));
   }
 
   public Command setSpeedCommand(double speed) {

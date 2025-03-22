@@ -23,6 +23,8 @@ public class AlignWithNearestSectorTag extends Command {
 
   private final Transform2d m_offset;
 
+  private Pose2d m_targetPose;
+
   /** Creates a new AlignToNearestSectorCmd. */
   public AlignWithNearestSectorTag(SwerveSubsystem swerveSubsystem, Transform2d offset) {
     m_swerveSubsystem = swerveSubsystem;
@@ -47,13 +49,13 @@ public class AlignWithNearestSectorTag extends Command {
       return;
 
     Pose2d tagPose = AprilTagUtils.getAprilTagPose3d(tagId).toPose2d();
-    Pose2d targetPose = tagPose.transformBy(m_offset);
+    m_targetPose = tagPose.transformBy(m_offset);
 
     m_swerveSubsystem.drive(
-        m_xController.calculate(m_swerveSubsystem.getPose().getX(), targetPose.getX()),
-        m_yController.calculate(m_swerveSubsystem.getPose().getY(), targetPose.getY()),
-        targetPose.getRotation().getSin(),
-        targetPose.getRotation().getCos());
+        m_xController.calculate(m_swerveSubsystem.getPose().getX(), m_targetPose.getX()),
+        m_yController.calculate(m_swerveSubsystem.getPose().getY(), m_targetPose.getY()),
+        m_targetPose.getRotation().getSin(),
+        m_targetPose.getRotation().getCos());
   }
 
   // Called once the command ends or is interrupted.
@@ -64,6 +66,14 @@ public class AlignWithNearestSectorTag extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    if (m_targetPose == null) {
+      return false;
+    }
+
+    Pose2d currentPose = m_swerveSubsystem.getPose();
+    double xError = Math.abs(currentPose.getX() - m_targetPose.getX());
+    double yError = Math.abs(currentPose.getY() - m_targetPose.getY());
+
+    return xError < 0.1 && yError < 0.1; // Thresholds for position
   }
 }

@@ -16,11 +16,14 @@ public class ShooterSubsystem extends SubsystemBase {
 
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
+    m_motor.configFactoryDefault();
+
+    // TODO: Invert the motor if neccessary
+    m_motor.setInverted(false);
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
   }
 
   public Command setSpeedCommand(double speed) {

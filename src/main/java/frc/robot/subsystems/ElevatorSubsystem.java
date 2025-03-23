@@ -6,8 +6,8 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
-import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -20,7 +20,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ElevatorConstants;
 
 public class ElevatorSubsystem extends SubsystemBase {
-  private final VictorSPX m_motor = new VictorSPX(ElevatorConstants.kMotor1Id);
+  // private final VictorSPX m_motor = new VictorSPX(ElevatorConstants.kMotor1Id);
+  private final SparkMax m_motor = new SparkMax(ElevatorConstants.kMotor2Id, MotorType.kBrushed);
 
   private final Encoder m_encoder = new Encoder(0, 1, false, EncodingType.k4X);
   private final DigitalInput m_lowerLimitSwitch = new DigitalInput(2);
@@ -34,21 +35,23 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   /** Creates a new ElevatorSubsystem. */
   public ElevatorSubsystem() {
-    m_motor.configFactoryDefault();
+    // m_motor.configFactoryDefault();
 
     // TODO: Invert the motor if necessary
-    m_motor.setInverted(false);
+    // m_motor.setInverted(false);
   }
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Elevator/HeightInches", getHeightInches());
+    SmartDashboard.putNumber(ElevatorConstants.kSlash + "HeightInches", getHeightInches());
+    // SmartDashboard.putNumber(ElevatorConstants.kSlash + "Output Current",
+    // m_motor.getOutput)
 
-    if (m_lowerLimitSwitch.get()) {
-      m_motor.set(VictorSPXControlMode.PercentOutput, 0);
-      m_encoder.reset();
-      m_calibrated = true;
-    }
+    // if (m_lowerLimitSwitch.get()) {
+    // m_motor.set(VictorSPXControlMode.PercentOutput, 0);
+    // m_encoder.reset();
+    // m_calibrated = true;
+    // }
 
     // Failsafe in case the setpoint is ever below the minimum height
     if (m_setpoint < ElevatorConstants.kMinimumHeightInches) {
@@ -67,15 +70,15 @@ public class ElevatorSubsystem extends SubsystemBase {
 
       // m_motor.set(VictorSPXControlMode.PercentOutput, pidOutput);
     } else if (m_upperLimitSwitch.get()) {
-      m_motor.set(VictorSPXControlMode.PercentOutput, 0);
+      // m_motor.set(VictorSPXControlMode.PercentOutput, 0);
     } else {
       // If the elevator is not calibrated, move down
-      m_motor.set(VictorSPXControlMode.PercentOutput, -0.1);
+      // m_motor.set(VictorSPXControlMode.PercentOutput, -0.1);
     }
   }
 
   private double getHeightInches() {
-    return m_encoder.getDistance() / 256; // 256 ticks per revolution gives us a distance in revolutions
+    return (m_encoder.getDistance() / 256); // 256 ticks per revolution gives us a distance in revolutions
     // TODO: Convert revolutions to inches from the ground using gearbox info, plus
     // add a constant for the minimum height
   }
@@ -99,6 +102,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   private void setMotorSpeed(double speed) {
-    m_motor.set(VictorSPXControlMode.PercentOutput, speed);
+    // m_motor.set(VictorSPXControlMode.PercentOutput, speed);
+    m_motor.set(speed);
   }
 }

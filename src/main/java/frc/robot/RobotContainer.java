@@ -19,101 +19,114 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.AlignWithNearestSectorTag;
+import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Elastic;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.Elastic.Notification.NotificationLevel;
 
 public class RobotContainer {
-    // Controllers
-    private final CommandXboxController m_driverController = new CommandXboxController(
-            OIConstants.kDriverControllerPort);
-    private final CommandXboxController m_operatorController = new CommandXboxController(
-            OIConstants.kOperatorControllerPort);
+        // Controllers
+        private final CommandXboxController m_driverController = new CommandXboxController(
+                        OIConstants.kDriverControllerPort);
+        private final CommandXboxController m_operatorController = new CommandXboxController(
+                        OIConstants.kOperatorControllerPort);
 
-    // Subsystems
-    private final SwerveSubsystem m_swerveSubsystem = new SwerveSubsystem();
+        // Subsystems
+        private final SwerveSubsystem m_swerveSubsystem = new SwerveSubsystem();
+        private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
+        private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+        private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 
-    private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
+        // Commands
 
-    // Commands
+        // Other stuff
+        private final SendableChooser<Command> m_autoChooser;
 
-    // Other stuff
-    private final SendableChooser<Command> m_autoChooser;
+        public RobotContainer() {
+                // Send a friendly message to the driver
+                Elastic.sendNotification(new Notification(NotificationLevel.INFO, "YEYEYE!", "Robot program started."));
 
-    public RobotContainer() {
-        // Send a friendly message to the driver
-        Elastic.sendNotification(new Notification(NotificationLevel.INFO, "YEYEYE!", "Robot program started."));
+                registerNamedCommands();
+                configureBindings();
 
-        registerNamedCommands();
-        configureBindings();
+                Command allianceRelativeDirectAngle = m_swerveSubsystem.driveCommand(
+                                () -> -MathUtil.applyDeadband(m_driverController.getLeftY(),
+                                                OIConstants.kDriverControllerTranslationDeadband),
+                                () -> -MathUtil.applyDeadband(m_driverController.getLeftX(),
+                                                OIConstants.kDriverControllerTranslationDeadband),
+                                () -> -MathUtil.applyDeadband(m_driverController.getRightX(),
+                                                OIConstants.kDriverControllerRotationDeadband),
+                                () -> -MathUtil.applyDeadband(m_driverController.getRightY(),
+                                                OIConstants.kDriverControllerRotationDeadband))
+                                .beforeStarting(new InstantCommand(() -> m_swerveSubsystem.setCommandedHeading(),
+                                                m_swerveSubsystem));
 
-        Command allianceRelativeDirectAngle = m_swerveSubsystem.driveCommand(
-                () -> -MathUtil.applyDeadband(m_driverController.getLeftY(),
-                        OIConstants.kDriverControllerTranslationDeadband),
-                () -> -MathUtil.applyDeadband(m_driverController.getLeftX(),
-                        OIConstants.kDriverControllerTranslationDeadband),
-                () -> -MathUtil.applyDeadband(m_driverController.getRightX(),
-                        OIConstants.kDriverControllerRotationDeadband),
-                () -> -MathUtil.applyDeadband(m_driverController.getRightY(),
-                        OIConstants.kDriverControllerRotationDeadband))
-                .beforeStarting(new InstantCommand(() -> m_swerveSubsystem.setCommandedHeading(), m_swerveSubsystem));
+                // Command allianceRelativeDirectAngle =
+                // m_swerveSubsystem.driveFieldOriented(SwerveInputStream.of(
+                // m_swerveSubsystem.getSwerveDrive(),
+                // () -> -m_driverController.getLeftY(),
+                // () -> -m_driverController.getLeftX())
+                // .withControllerHeadingAxis(() -> -m_driverController.getRightX(), () ->
+                // -m_driverController.getRightY())
+                // .headingWhile(true)
+                // .deadband(OIConstants.kDriverControllerTranslationDeadband)
+                // .allianceRelativeControl(true));
 
-        // Command allianceRelativeDirectAngle =
-        // m_swerveSubsystem.driveFieldOriented(SwerveInputStream.of(
-        // m_swerveSubsystem.getSwerveDrive(),
-        // () -> -m_driverController.getLeftY(),
-        // () -> -m_driverController.getLeftX())
-        // .withControllerHeadingAxis(() -> -m_driverController.getRightX(), () ->
-        // -m_driverController.getRightY())
-        // .headingWhile(true)
-        // .deadband(OIConstants.kDriverControllerTranslationDeadband)
-        // .allianceRelativeControl(true));
+                // m_swerveSubsystem.setDefaultCommand(allianceRelativeDirectAngle);
 
-        m_swerveSubsystem.setDefaultCommand(allianceRelativeDirectAngle);
+                m_elevatorSubsystem
+                                .setDefaultCommand(m_elevatorSubsystem
+                                                .setMotorSpeedCommand(() -> -m_operatorController.getRawAxis(3)));
 
-        m_elevatorSubsystem
-                .setDefaultCommand(m_elevatorSubsystem.setMotorSpeedCommand(() -> m_operatorController.getRawAxis(3)));
+                // Send the auto chooser to the dashboard
+                m_autoChooser = AutoBuilder.buildAutoChooser();
+                SmartDashboard.putData("Auto Chooser", m_autoChooser);
 
-        // Send the auto chooser to the dashboard
-        m_autoChooser = AutoBuilder.buildAutoChooser();
-        SmartDashboard.putData("Auto Chooser", m_autoChooser);
+                DriverStation.silenceJoystickConnectionWarning(true);
+        }
 
-        DriverStation.silenceJoystickConnectionWarning(true);
-    }
+        private void registerNamedCommands() {
+                NamedCommands.registerCommand("AlignWithNearestSectorTag",
+                                new AlignWithNearestSectorTag(m_swerveSubsystem,
+                                                new Transform2d(
+                                                                Units.inchesToMeters(24),
+                                                                Units.inchesToMeters(0),
+                                                                Rotation2d.fromDegrees(180))));
 
-    private void registerNamedCommands() {
-        NamedCommands.registerCommand("AlignWithNearestSectorTag", new AlignWithNearestSectorTag(m_swerveSubsystem,
-                new Transform2d(
-                        Units.inchesToMeters(24),
-                        Units.inchesToMeters(0),
-                        Rotation2d.fromDegrees(180))));
+                NamedCommands.registerCommand("Raise Elevator L1", m_elevatorSubsystem.setHeightInchesCommand(30));
+                NamedCommands.registerCommand("Raise Elevator L2", m_elevatorSubsystem.setHeightInchesCommand(40));
+                NamedCommands.registerCommand("Raise Elevator L3", m_elevatorSubsystem.setHeightInchesCommand(50));
+                NamedCommands.registerCommand("Raise Elevator L4", m_elevatorSubsystem.setHeightInchesCommand(72));
+        }
 
-        NamedCommands.registerCommand("Raise Elevator L1", m_elevatorSubsystem.setHeightInchesCommand(30));
-        NamedCommands.registerCommand("Raise Elevator L2", m_elevatorSubsystem.setHeightInchesCommand(40));
-        NamedCommands.registerCommand("Raise Elevator L3", m_elevatorSubsystem.setHeightInchesCommand(50));
-        NamedCommands.registerCommand("Raise Elevator L4", m_elevatorSubsystem.setHeightInchesCommand(72));
-    }
+        private void configureBindings() {
 
-    private void configureBindings() {
+                m_driverController.leftBumper()
+                                .onTrue(new InstantCommand(m_swerveSubsystem::zeroGyro, m_swerveSubsystem));
 
-        m_driverController.leftBumper().onTrue(new InstantCommand(m_swerveSubsystem::zeroGyro, m_swerveSubsystem));
+                m_driverController.rightBumper()
+                                .onTrue(new InstantCommand(m_swerveSubsystem::resetOdometry, m_swerveSubsystem));
 
-        m_driverController.rightBumper()
-                .onTrue(new InstantCommand(m_swerveSubsystem::resetOdometry, m_swerveSubsystem));
+                m_driverController.x()
+                                .whileTrue(m_swerveSubsystem.alignWithAprilTag(18,
+                                                new Transform2d(Units.inchesToMeters(48), Units.inchesToMeters(0),
+                                                                Rotation2d.fromDegrees(0))));
 
-        m_driverController.x()
-                .whileTrue(m_swerveSubsystem.alignWithAprilTag(18,
-                        new Transform2d(Units.inchesToMeters(48), Units.inchesToMeters(0), Rotation2d.fromDegrees(0))));
+                m_driverController.y().whileTrue(new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
+                                Units.inchesToMeters(24),
+                                Units.inchesToMeters(0),
+                                Rotation2d.fromDegrees(180))));
 
-        m_driverController.y().whileTrue(new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
-                Units.inchesToMeters(24),
-                Units.inchesToMeters(0),
-                Rotation2d.fromDegrees(180))));
-    }
+                m_driverController.povDown().onTrue(m_climberSubsystem.setSpeedCommand(-0.9))
+                                .onFalse(m_climberSubsystem.setSpeedCommand(0));
+                m_driverController.povUp().onTrue(m_climberSubsystem.setSpeedCommand(0.9))
+                                .onFalse(m_climberSubsystem.setSpeedCommand(0));
+        }
 
-    public Command getAutonomousCommand() {
-        return m_autoChooser.getSelected();
-    }
+        public Command getAutonomousCommand() {
+                return m_autoChooser.getSelected();
+        }
 }

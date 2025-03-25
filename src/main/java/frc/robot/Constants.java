@@ -17,8 +17,8 @@ public final class Constants {
 
     public static final class ElevatorConstants {
         public static final String kSlash = "Elevator/";
-        public static final double kMinimumHeightInches = 30;
-        public static final double kMaximumHeightInches = 72;
+        public static final double kMinimumHeightInches = 7.2;
+        public static final double kMaximumHeightInches = 34;
         public static final int kMotor1Id = 13;
         public static final int kMotor2Id = 14;
     }

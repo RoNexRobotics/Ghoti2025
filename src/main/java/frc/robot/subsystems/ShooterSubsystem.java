@@ -19,7 +19,7 @@ public class ShooterSubsystem extends SubsystemBase {
     m_motor.configFactoryDefault();
 
     // TODO: Invert the motor if neccessary
-    m_motor.setInverted(false);
+    m_motor.setInverted(true);
   }
 
   @Override

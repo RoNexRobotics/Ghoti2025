@@ -17,8 +17,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.AlignWithNearestSectorTag;
+import frc.robot.commands.CalibrateElevatorCmd;
+import frc.robot.commands.ElevatorManualCmd;
+import frc.robot.commands.ElevatorPIDCmd;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -36,7 +40,7 @@ public class RobotContainer {
 
         // Subsystems
         private final SwerveSubsystem m_swerveSubsystem = new SwerveSubsystem();
-        private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
+        public final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
         private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
         private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 
@@ -64,22 +68,10 @@ public class RobotContainer {
                                 .beforeStarting(new InstantCommand(() -> m_swerveSubsystem.setCommandedHeading(),
                                                 m_swerveSubsystem));
 
-                // Command allianceRelativeDirectAngle =
-                // m_swerveSubsystem.driveFieldOriented(SwerveInputStream.of(
-                // m_swerveSubsystem.getSwerveDrive(),
-                // () -> -m_driverController.getLeftY(),
-                // () -> -m_driverController.getLeftX())
-                // .withControllerHeadingAxis(() -> -m_driverController.getRightX(), () ->
-                // -m_driverController.getRightY())
-                // .headingWhile(true)
-                // .deadband(OIConstants.kDriverControllerTranslationDeadband)
-                // .allianceRelativeControl(true));
-
-                // m_swerveSubsystem.setDefaultCommand(allianceRelativeDirectAngle);
+                m_swerveSubsystem.setDefaultCommand(allianceRelativeDirectAngle);
 
                 m_elevatorSubsystem
-                                .setDefaultCommand(m_elevatorSubsystem
-                                                .setMotorSpeedCommand(() -> -m_operatorController.getRawAxis(3)));
+                                .setDefaultCommand(new ElevatorPIDCmd(m_elevatorSubsystem));
 
                 // Send the auto chooser to the dashboard
                 m_autoChooser = AutoBuilder.buildAutoChooser();
@@ -96,19 +88,17 @@ public class RobotContainer {
                                                                 Units.inchesToMeters(0),
                                                                 Rotation2d.fromDegrees(180))));
 
-                NamedCommands.registerCommand("Raise Elevator L1", m_elevatorSubsystem.setHeightInchesCommand(30));
-                NamedCommands.registerCommand("Raise Elevator L2", m_elevatorSubsystem.setHeightInchesCommand(40));
-                NamedCommands.registerCommand("Raise Elevator L3", m_elevatorSubsystem.setHeightInchesCommand(50));
-                NamedCommands.registerCommand("Raise Elevator L4", m_elevatorSubsystem.setHeightInchesCommand(72));
+                NamedCommands.registerCommand("Elevator L1", new InstantCommand(
+                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kMinimumHeightInches)));
+                NamedCommands.registerCommand("Elevator L2",
+                                new InstantCommand(() -> m_elevatorSubsystem.setPIDSetpoint(9.5)));
+                NamedCommands.registerCommand("Elevator L3", new InstantCommand(
+                                () -> m_elevatorSubsystem.setPIDSetpoint(22)));
+                NamedCommands.registerCommand("Elevator L4", new InstantCommand(
+                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kMinimumHeightInches)));
         }
 
         private void configureBindings() {
-
-                m_driverController.leftBumper()
-                                .onTrue(new InstantCommand(m_swerveSubsystem::zeroGyro, m_swerveSubsystem));
-
-                m_driverController.rightBumper()
-                                .onTrue(new InstantCommand(m_swerveSubsystem::resetOdometry, m_swerveSubsystem));
 
                 m_driverController.x()
                                 .whileTrue(m_swerveSubsystem.alignWithAprilTag(18,
@@ -120,10 +110,32 @@ public class RobotContainer {
                                 Units.inchesToMeters(0),
                                 Rotation2d.fromDegrees(180))));
 
-                m_driverController.povDown().onTrue(m_climberSubsystem.setSpeedCommand(-0.9))
+                m_driverController.povDown().onTrue(m_climberSubsystem.setSpeedCommand(-1))
                                 .onFalse(m_climberSubsystem.setSpeedCommand(0));
-                m_driverController.povUp().onTrue(m_climberSubsystem.setSpeedCommand(0.9))
+                m_driverController.povUp().onTrue(m_climberSubsystem.setSpeedCommand(1))
                                 .onFalse(m_climberSubsystem.setSpeedCommand(0));
+
+                // DRIVERS CONTROLS ^^^^^^^^^^^^^^^^^^
+                // OPERATORS CONTROLS BELOW CAUSE THERE'S NO DOWN ARROW ON THIS KEYBOARD
+
+                m_operatorController.rightBumper().whileTrue(new CalibrateElevatorCmd(m_elevatorSubsystem));
+
+                m_operatorController.povUp().onTrue(new ElevatorManualCmd(m_elevatorSubsystem, () -> 0.4))
+                                .onFalse(new ElevatorManualCmd(m_elevatorSubsystem, () -> 0));
+                m_operatorController.povDown().onTrue(new ElevatorManualCmd(m_elevatorSubsystem, () -> -0.4))
+                                .onFalse(new ElevatorManualCmd(m_elevatorSubsystem, () -> 0));
+
+                m_operatorController.button(1).onTrue(new InstantCommand(
+                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kMinimumHeightInches)));
+                m_operatorController.button(4).onTrue(new InstantCommand(() -> m_elevatorSubsystem
+                                .setPIDSetpoint(ElevatorConstants.kMaximumHeightInches * 1 / 3)));
+                m_operatorController.button(2).onTrue(new InstantCommand(() -> m_elevatorSubsystem
+                                .setPIDSetpoint(ElevatorConstants.kMaximumHeightInches * 2 / 3)));
+                m_operatorController.button(3).onTrue(new InstantCommand(
+                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kMaximumHeightInches)));
+
+                m_operatorController.button(5).onTrue(m_shooterSubsystem.setSpeedCommand(1))
+                                .onFalse(m_shooterSubsystem.setSpeedCommand(0));
         }
 
         public Command getAutonomousCommand() {

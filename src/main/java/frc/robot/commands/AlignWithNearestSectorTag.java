@@ -17,9 +17,9 @@ public class AlignWithNearestSectorTag extends Command {
   private final SwerveSubsystem m_swerveSubsystem;
 
   private final ProfiledPIDController m_xController = new ProfiledPIDController(2, 0, 0,
-      new TrapezoidProfile.Constraints(2, 2));
+      new TrapezoidProfile.Constraints(2, 1));
   private final ProfiledPIDController m_yController = new ProfiledPIDController(2, 0, 0,
-      new TrapezoidProfile.Constraints(2, 2));
+      new TrapezoidProfile.Constraints(2, 1));
 
   private final Transform2d m_offset;
 
@@ -61,6 +61,11 @@ public class AlignWithNearestSectorTag extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+    m_swerveSubsystem.drive(
+        0,
+        0,
+        m_targetPose.getRotation().getSin(),
+        m_targetPose.getRotation().getCos());
   }
 
   // Returns true when the command should end.

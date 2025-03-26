@@ -25,7 +25,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ElevatorConstants;
 
 public class ElevatorSubsystem extends SubsystemBase {
-  private final SparkMax m_motor = new SparkMax(ElevatorConstants.kMotor2Id, MotorType.kBrushed);
+  private final SparkMax m_motor = new SparkMax(ElevatorConstants.kMotorId, MotorType.kBrushed);
 
   private final Encoder m_encoder = new Encoder(0, 1, true, EncodingType.k4X);
   private final DigitalInput m_upperLimitSwitch = new DigitalInput(3);
@@ -79,7 +79,16 @@ public class ElevatorSubsystem extends SubsystemBase {
     } else {
       setMotorSpeed(0);
       m_encoder.reset();
+      m_pidController.reset(new TrapezoidProfile.State(getHeightInches(), 0));
       m_calibrated = true;
+    }
+  }
+
+  public void bounceL4() {
+    if (Math.abs(ElevatorConstants.kL4HeightInches - getHeightInches()) < 1) {
+      setPIDSetpoint(ElevatorConstants.kL3HeightInches);
+    } else {
+      setPIDSetpoint(ElevatorConstants.kL4HeightInches);
     }
   }
 
@@ -93,6 +102,8 @@ public class ElevatorSubsystem extends SubsystemBase {
       double pidOutput = m_pidController.calculate(getHeightInches());
       SmartDashboard.putNumber(ElevatorConstants.kSlash + "PID Output", pidOutput);
       setMotorSpeed(0.12 + pidOutput);
+    } else {
+      calibrate();
     }
   }
 

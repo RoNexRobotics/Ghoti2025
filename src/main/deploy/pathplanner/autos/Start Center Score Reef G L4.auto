@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "path",
+          "data": {
+            "pathName": "Start Center Appr Reef G"
+          }
+        },
+        {
           "type": "named",
           "data": {
             "name": "AlignWithNearestSectorTag"
@@ -13,7 +19,25 @@
         {
           "type": "named",
           "data": {
-            "name": "Raise Elevator L4"
+            "name": "Elevator L4"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot Coral"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Elevator L1"
           }
         }
       ]

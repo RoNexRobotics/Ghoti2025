@@ -20,9 +20,9 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.AlignWithNearestSectorTag;
-import frc.robot.commands.CalibrateElevatorCmd;
 import frc.robot.commands.ElevatorManualCmd;
 import frc.robot.commands.ElevatorPIDCmd;
+import frc.robot.commands.ShootCoralCmd;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -86,16 +86,19 @@ public class RobotContainer {
                                                 new Transform2d(
                                                                 Units.inchesToMeters(24),
                                                                 Units.inchesToMeters(0),
-                                                                Rotation2d.fromDegrees(180))));
+                                                                Rotation2d.fromDegrees(-90))));
 
                 NamedCommands.registerCommand("Elevator L1", new InstantCommand(
-                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kMinimumHeightInches)));
+                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kL1HeightInches)));
                 NamedCommands.registerCommand("Elevator L2",
-                                new InstantCommand(() -> m_elevatorSubsystem.setPIDSetpoint(9.5)));
+                                new InstantCommand(() -> m_elevatorSubsystem
+                                                .setPIDSetpoint(ElevatorConstants.kL2HeightInches)));
                 NamedCommands.registerCommand("Elevator L3", new InstantCommand(
-                                () -> m_elevatorSubsystem.setPIDSetpoint(22)));
+                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kL3HeightInches)));
                 NamedCommands.registerCommand("Elevator L4", new InstantCommand(
-                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kMinimumHeightInches)));
+                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kL4HeightInches)));
+
+                NamedCommands.registerCommand("Shoot Coral", new ShootCoralCmd(m_shooterSubsystem));
         }
 
         private void configureBindings() {
@@ -108,7 +111,7 @@ public class RobotContainer {
                 m_driverController.y().whileTrue(new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
                                 Units.inchesToMeters(24),
                                 Units.inchesToMeters(0),
-                                Rotation2d.fromDegrees(180))));
+                                Rotation2d.fromDegrees(-90))));
 
                 m_driverController.povDown().onTrue(m_climberSubsystem.setSpeedCommand(-1))
                                 .onFalse(m_climberSubsystem.setSpeedCommand(0));
@@ -118,7 +121,8 @@ public class RobotContainer {
                 // DRIVERS CONTROLS ^^^^^^^^^^^^^^^^^^
                 // OPERATORS CONTROLS BELOW CAUSE THERE'S NO DOWN ARROW ON THIS KEYBOARD
 
-                m_operatorController.rightBumper().whileTrue(new CalibrateElevatorCmd(m_elevatorSubsystem));
+                // m_operatorController.button(5).whileTrue(new
+                // CalibrateElevatorCmd(m_elevatorSubsystem));
 
                 m_operatorController.povUp().onTrue(new ElevatorManualCmd(m_elevatorSubsystem, () -> 0.4))
                                 .onFalse(new ElevatorManualCmd(m_elevatorSubsystem, () -> 0));
@@ -126,16 +130,15 @@ public class RobotContainer {
                                 .onFalse(new ElevatorManualCmd(m_elevatorSubsystem, () -> 0));
 
                 m_operatorController.button(1).onTrue(new InstantCommand(
-                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kMinimumHeightInches)));
+                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kL1HeightInches)));
                 m_operatorController.button(4).onTrue(new InstantCommand(() -> m_elevatorSubsystem
-                                .setPIDSetpoint(ElevatorConstants.kMaximumHeightInches * 1 / 3)));
+                                .setPIDSetpoint(ElevatorConstants.kL2HeightInches)));
                 m_operatorController.button(2).onTrue(new InstantCommand(() -> m_elevatorSubsystem
-                                .setPIDSetpoint(ElevatorConstants.kMaximumHeightInches * 2 / 3)));
+                                .setPIDSetpoint(ElevatorConstants.kL3HeightInches)));
                 m_operatorController.button(3).onTrue(new InstantCommand(
-                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kMaximumHeightInches)));
+                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kL4HeightInches)));
 
-                m_operatorController.button(5).onTrue(m_shooterSubsystem.setSpeedCommand(1))
-                                .onFalse(m_shooterSubsystem.setSpeedCommand(0));
+                m_operatorController.button(8).onTrue(new ShootCoralCmd(m_shooterSubsystem));
         }
 
         public Command getAutonomousCommand() {

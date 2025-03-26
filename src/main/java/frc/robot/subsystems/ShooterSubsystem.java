@@ -18,7 +18,6 @@ public class ShooterSubsystem extends SubsystemBase {
   public ShooterSubsystem() {
     m_motor.configFactoryDefault();
 
-    // TODO: Invert the motor if neccessary
     m_motor.setInverted(true);
   }
 
@@ -30,7 +29,7 @@ public class ShooterSubsystem extends SubsystemBase {
     return run(() -> setSpeed(speed));
   }
 
-  private void setSpeed(double speed) {
+  public void setSpeed(double speed) {
     m_motor.set(VictorSPXControlMode.PercentOutput, speed);
   }
 }

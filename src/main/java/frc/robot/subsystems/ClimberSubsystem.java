@@ -14,14 +14,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ClimberConstants;
 
 public class ClimberSubsystem extends SubsystemBase {
-  private final VictorSPX m_motor = new VictorSPX(ClimberConstants.kMotorId);
+  private final VictorSPX m_motor1 = new VictorSPX(ClimberConstants.kMotor1Id);
+  private final VictorSPX m_motor2 = new VictorSPX(ClimberConstants.kMotor2Id);
 
   /** Creates a new ClimberSubsystem. */
   public ClimberSubsystem() {
-    m_motor.configFactoryDefault();
+    m_motor1.configFactoryDefault();
+    m_motor2.configFactoryDefault();
 
-    // TODO: Invert the motor if necessary
-    m_motor.setInverted(false);
+    m_motor1.setInverted(false);
+    m_motor2.setInverted(false);
   }
 
   @Override
@@ -37,6 +39,7 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   private void setSpeed(double speed) {
-    m_motor.set(VictorSPXControlMode.PercentOutput, speed);
+    m_motor1.set(VictorSPXControlMode.PercentOutput, speed);
+    m_motor2.set(VictorSPXControlMode.PercentOutput, speed);
   }
 }

@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
@@ -24,6 +25,9 @@ public class ClimberSubsystem extends SubsystemBase {
 
     m_motor1.setInverted(false);
     m_motor2.setInverted(false);
+
+    m_motor1.setNeutralMode(NeutralMode.Brake);
+    m_motor2.setNeutralMode(NeutralMode.Brake);
   }
 
   @Override

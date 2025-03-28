@@ -20,8 +20,8 @@ public final class Constants {
         public static final double kMinimumHeightInches = 7.2;
         public static final double kMaximumHeightInches = 34;
         public static final double kL1HeightInches = 7.2;
-        public static final double kL2HeightInches = 9.5;
-        public static final double kL3HeightInches = 22;
+        public static final double kL2HeightInches = 12;
+        public static final double kL3HeightInches = 21.53;
         public static final double kL4HeightInches = 34;
         public static final int kMotorId = 14;
     }

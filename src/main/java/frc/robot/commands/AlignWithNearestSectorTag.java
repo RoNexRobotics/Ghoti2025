@@ -17,9 +17,9 @@ public class AlignWithNearestSectorTag extends Command {
   private final SwerveSubsystem m_swerveSubsystem;
 
   private final ProfiledPIDController m_xController = new ProfiledPIDController(2, 0, 0,
-      new TrapezoidProfile.Constraints(2, 1));
+      new TrapezoidProfile.Constraints(0.1, 0.1));
   private final ProfiledPIDController m_yController = new ProfiledPIDController(2, 0, 0,
-      new TrapezoidProfile.Constraints(2, 1));
+      new TrapezoidProfile.Constraints(0.1, 0.1));
 
   private final Transform2d m_offset;
 
@@ -51,11 +51,19 @@ public class AlignWithNearestSectorTag extends Command {
     Pose2d tagPose = AprilTagUtils.getAprilTagPose3d(tagId).toPose2d();
     m_targetPose = tagPose.transformBy(m_offset);
 
-    m_swerveSubsystem.drive(
-        m_xController.calculate(m_swerveSubsystem.getPose().getX(), m_targetPose.getX()),
-        m_yController.calculate(m_swerveSubsystem.getPose().getY(), m_targetPose.getY()),
-        m_targetPose.getRotation().getSin(),
-        m_targetPose.getRotation().getCos());
+    if (!m_swerveSubsystem.isRedAlliance()) {
+      m_swerveSubsystem.drive(
+          m_xController.calculate(m_swerveSubsystem.getPose().getX(), m_targetPose.getX()),
+          m_yController.calculate(m_swerveSubsystem.getPose().getY(), m_targetPose.getY()),
+          m_targetPose.getRotation().getSin(),
+          m_targetPose.getRotation().getCos());
+    } else {
+      m_swerveSubsystem.drive(
+          m_xController.calculate(-m_swerveSubsystem.getPose().getX(), m_targetPose.getX()),
+          m_yController.calculate(-m_swerveSubsystem.getPose().getY(), m_targetPose.getY()),
+          m_targetPose.getRotation().getSin(),
+          m_targetPose.getRotation().getCos());
+    }
   }
 
   // Called once the command ends or is interrupted.

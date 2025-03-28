@@ -7,13 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "FC-REEF[B]"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "AlignWithNearestSectorTag"
+            "pathName": "Start Center Leave"
           }
         }
       ]

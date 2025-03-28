@@ -64,7 +64,8 @@ public class RobotContainer {
                                 () -> -MathUtil.applyDeadband(m_driverController.getRightX(),
                                                 OIConstants.kDriverControllerRotationDeadband),
                                 () -> -MathUtil.applyDeadband(m_driverController.getRightY(),
-                                                OIConstants.kDriverControllerRotationDeadband))
+                                                OIConstants.kDriverControllerRotationDeadband),
+                                () -> m_elevatorSubsystem.getHeightInches())
                                 .beforeStarting(new InstantCommand(() -> m_swerveSubsystem.setCommandedHeading(),
                                                 m_swerveSubsystem));
 
@@ -104,18 +105,24 @@ public class RobotContainer {
         private void configureBindings() {
 
                 m_driverController.x()
-                                .whileTrue(m_swerveSubsystem.alignWithAprilTag(18,
-                                                new Transform2d(Units.inchesToMeters(48), Units.inchesToMeters(0),
+                                .whileTrue(m_swerveSubsystem.alignWithAprilTag(10,
+                                                new Transform2d(Units.inchesToMeters(17.625), Units.inchesToMeters(0),
                                                                 Rotation2d.fromDegrees(0))));
 
                 m_driverController.y().whileTrue(new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
-                                Units.inchesToMeters(24),
+                                Units.inchesToMeters(17.625),
                                 Units.inchesToMeters(0),
                                 Rotation2d.fromDegrees(-90))));
 
-                m_driverController.povDown().onTrue(m_climberSubsystem.setSpeedCommand(-1))
+                // m_driverController.rightBumper().whileTrue(new
+                // AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
+                // Units.inchesToMeters(15),
+                // Units.inchesToMeters(0),
+                // Rotation2d.fromDegrees(-90))));
+
+                m_driverController.povDown().onTrue(m_climberSubsystem.setSpeedCommand(-0.6))
                                 .onFalse(m_climberSubsystem.setSpeedCommand(0));
-                m_driverController.povUp().onTrue(m_climberSubsystem.setSpeedCommand(1))
+                m_driverController.povUp().onTrue(m_climberSubsystem.setSpeedCommand(0.6))
                                 .onFalse(m_climberSubsystem.setSpeedCommand(0));
 
                 // DRIVERS CONTROLS ^^^^^^^^^^^^^^^^^^

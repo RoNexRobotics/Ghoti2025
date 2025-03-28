@@ -36,6 +36,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.util.AprilTagUtils;
 import frc.robot.util.LimelightHelpers;
@@ -92,16 +93,30 @@ public class SwerveSubsystem extends SubsystemBase {
 
     if (SwerveConstants.kMegaTag2Enabled) {
       // Limelight 3G
-      LimelightHelpers.SetRobotOrientation("limelight-better",
-          m_swerve.swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getDegrees(),
-          0, 0, 0, 0, 0);
-      LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-better");
-      if (mt2 != null &&
-          Math.abs(m_swerve.getGyro().getYawAngularVelocity().magnitude()) <= 720 &&
-          mt2.tagCount != 0) {
-        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 999999999));
-        m_swerve.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
-      }
+      // LimelightHelpers.SetRobotOrientation("limelight-better",
+      // m_swerve.swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getDegrees(),
+      // 0, 0, 0, 0, 0);
+      // LimelightHelpers.PoseEstimate ll3Gmt2 =
+      // LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-better");
+      // if (ll3Gmt2 != null &&
+      // Math.abs(m_swerve.getGyro().getYawAngularVelocity().magnitude()) <= 720 &&
+      // ll3Gmt2.tagCount != 0) {
+      // m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(2, 2, 5));
+      // m_swerve.addVisionMeasurement(ll3Gmt2.pose, ll3Gmt2.timestampSeconds);
+      // }
+
+      // Limelight 1
+      // LimelightHelpers.SetRobotOrientation("limelight",
+      // m_swerve.swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getDegrees(),
+      // 0, 0, 0, 0, 0);
+      // LimelightHelpers.PoseEstimate ll1mt2 =
+      // LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-better");
+      // if (ll1mt2 != null &&
+      // Math.abs(m_swerve.getGyro().getYawAngularVelocity().magnitude()) <= 720 &&
+      // ll1mt2.tagCount != 0) {
+      // m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(5, 5, 20));
+      // m_swerve.addVisionMeasurement(ll1mt2.pose, ll1mt2.timestampSeconds);
+      // }
 
       // if (mt2 != null) {
       // Pose3d[] poses = new Pose3d[mt2.rawFiducials.length];
@@ -114,13 +129,22 @@ public class SwerveSubsystem extends SubsystemBase {
       // publisher.set(null);
       // }
 
-      LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-better");
+      LimelightHelpers.PoseEstimate ll3Gmt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-better");
 
-      if (mt1 != null && !((mt1.tagCount == 1 && mt1.rawFiducials.length == 1 &&
-          (mt1.rawFiducials[0].ambiguity > 0.7 || mt1.rawFiducials[0].distToCamera > 3)) ||
-          (mt1.tagCount == 0))) {
+      if (ll3Gmt1 != null && !((ll3Gmt1.tagCount == 1 && ll3Gmt1.rawFiducials.length == 1 &&
+          (ll3Gmt1.rawFiducials[0].ambiguity > 0.7 || ll3Gmt1.rawFiducials[0].distToCamera > 3)) ||
+          (ll3Gmt1.tagCount == 0))) {
         m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(.5, .5, .5));
-        m_swerve.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
+        m_swerve.addVisionMeasurement(ll3Gmt1.pose, ll3Gmt1.timestampSeconds);
+      }
+
+      LimelightHelpers.PoseEstimate ll1mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+
+      if (ll1mt1 != null && !((ll1mt1.tagCount == 1 && ll1mt1.rawFiducials.length == 1 &&
+          (ll1mt1.rawFiducials[0].ambiguity > 0.7 || ll1mt1.rawFiducials[0].distToCamera > 3)) ||
+          (ll1mt1.tagCount == 0))) {
+        m_swerve.setVisionMeasurementStdDevs(VecBuilder.fill(.5, .5, .5));
+        m_swerve.addVisionMeasurement(ll1mt1.pose, ll1mt1.timestampSeconds);
       }
 
     }
@@ -198,6 +222,16 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void drive(double translationX, double translationY, double headingX, double headingY) {
+    drive(translationX, translationY, headingX, headingY, ElevatorConstants.kMinimumHeightInches);
+  }
+
+  public void drive(double translationX, double translationY, double headingX, double headingY, double elevatorHeight) {
+
+    if (Math.abs(ElevatorConstants.kL4HeightInches - elevatorHeight) < 4) {
+      translationX = translationX * 0.5;
+      translationY = translationY * 0.5;
+    }
+
     Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX,
         translationY), 0.8);
 
@@ -215,6 +249,14 @@ public class SwerveSubsystem extends SubsystemBase {
   public Command driveFieldOriented(Supplier<ChassisSpeeds> velocity) {
     return run(() -> {
       m_swerve.driveFieldOriented(velocity.get());
+    });
+  }
+
+  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY,
+      DoubleSupplier headingX, DoubleSupplier headingY, DoubleSupplier elevatorHeightSupplier) {
+    return run(() -> {
+      drive(translationX.getAsDouble(), translationY.getAsDouble(), headingX.getAsDouble(), headingY.getAsDouble(),
+          elevatorHeightSupplier.getAsDouble());
     });
   }
 
@@ -249,7 +291,7 @@ public class SwerveSubsystem extends SubsystemBase {
     return m_swerve;
   }
 
-  private boolean isRedAlliance() {
+  public boolean isRedAlliance() {
     var alliance = DriverStation.getAlliance();
     return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
   }

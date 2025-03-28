@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.AlignWithNearestCoralStationCmd;
 import frc.robot.commands.AlignWithNearestSectorTag;
 import frc.robot.commands.ElevatorManualCmd;
 import frc.robot.commands.ElevatorPIDCmd;
@@ -83,11 +84,16 @@ public class RobotContainer {
 
         private void registerNamedCommands() {
                 NamedCommands.registerCommand("AlignWithNearestSectorTag",
-                                new AlignWithNearestSectorTag(m_swerveSubsystem,
-                                                new Transform2d(
-                                                                Units.inchesToMeters(24),
-                                                                Units.inchesToMeters(0),
-                                                                Rotation2d.fromDegrees(-90))));
+                                new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
+                                                Units.inchesToMeters(24),
+                                                Units.inchesToMeters(0),
+                                                Rotation2d.fromDegrees(-90))));
+
+                NamedCommands.registerCommand("AlginWithNearestCoralStation",
+                                new AlignWithNearestCoralStationCmd(m_swerveSubsystem, new Transform2d(
+                                                Units.inchesToMeters(17.625),
+                                                Units.inchesToMeters(0),
+                                                Rotation2d.fromDegrees(180))));
 
                 NamedCommands.registerCommand("Elevator L1", new InstantCommand(
                                 () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kL1HeightInches)));
@@ -105,20 +111,21 @@ public class RobotContainer {
         private void configureBindings() {
 
                 m_driverController.x()
-                                .whileTrue(m_swerveSubsystem.alignWithAprilTag(10,
-                                                new Transform2d(Units.inchesToMeters(17.625), Units.inchesToMeters(0),
-                                                                Rotation2d.fromDegrees(0))));
+                                .whileTrue(new AlignWithNearestCoralStationCmd(m_swerveSubsystem, new Transform2d(
+                                                Units.inchesToMeters(17.625),
+                                                Units.inchesToMeters(0),
+                                                Rotation2d.fromDegrees(180))));
 
                 m_driverController.y().whileTrue(new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
                                 Units.inchesToMeters(17.625),
                                 Units.inchesToMeters(0),
                                 Rotation2d.fromDegrees(-90))));
 
-                // m_driverController.rightBumper().whileTrue(new
-                // AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
-                // Units.inchesToMeters(15),
-                // Units.inchesToMeters(0),
-                // Rotation2d.fromDegrees(-90))));
+                m_driverController.rightBumper()
+                                .whileTrue(new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
+                                                Units.inchesToMeters(15),
+                                                Units.inchesToMeters(0),
+                                                Rotation2d.fromDegrees(-90))));
 
                 m_driverController.povDown().onTrue(m_climberSubsystem.setSpeedCommand(-0.6))
                                 .onFalse(m_climberSubsystem.setSpeedCommand(0));
@@ -133,7 +140,7 @@ public class RobotContainer {
 
                 m_operatorController.povUp().onTrue(new ElevatorManualCmd(m_elevatorSubsystem, () -> 0.4))
                                 .onFalse(new ElevatorManualCmd(m_elevatorSubsystem, () -> 0));
-                m_operatorController.povDown().onTrue(new ElevatorManualCmd(m_elevatorSubsystem, () -> -0.4))
+                m_operatorController.povDown().onTrue(new ElevatorManualCmd(m_elevatorSubsystem, () -> -0.35))
                                 .onFalse(new ElevatorManualCmd(m_elevatorSubsystem, () -> 0));
 
                 m_operatorController.button(1).onTrue(new InstantCommand(

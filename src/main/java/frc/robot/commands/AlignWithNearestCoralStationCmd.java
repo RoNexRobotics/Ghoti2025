@@ -13,7 +13,7 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.AprilTagUtils;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class AlignWithNearestSectorTag extends Command {
+public class AlignWithNearestCoralStationCmd extends Command {
   private final SwerveSubsystem m_swerveSubsystem;
 
   private final ProfiledPIDController m_xController = new ProfiledPIDController(2, 0, 0,
@@ -23,10 +23,11 @@ public class AlignWithNearestSectorTag extends Command {
 
   private final Transform2d m_offset;
 
+  private int m_coralStationTag = -1;
   private Pose2d m_targetPose;
 
-  /** Creates a new AlignToNearestSectorCmd. */
-  public AlignWithNearestSectorTag(SwerveSubsystem swerveSubsystem, Transform2d offset) {
+  /** Creates a new AlignWithNearestCoralStationCmd. */
+  public AlignWithNearestCoralStationCmd(SwerveSubsystem swerveSubsystem, Transform2d offset) {
     m_swerveSubsystem = swerveSubsystem;
     m_offset = offset;
 
@@ -43,12 +44,26 @@ public class AlignWithNearestSectorTag extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    int tagId = m_swerveSubsystem.reefSectors.getNearestSectorTag();
+    double yPos = m_swerveSubsystem.getPose().getY();
 
-    if (tagId == -1)
+    if (m_swerveSubsystem.isRedAlliance()) {
+      if (yPos <= 4) {
+        m_coralStationTag = 1;
+      } else if (yPos > 4) {
+        m_coralStationTag = 2;
+      }
+    } else {
+      if (yPos <= 4) {
+        m_coralStationTag = 12;
+      } else if (yPos > 4) {
+        m_coralStationTag = 13;
+      }
+    }
+
+    if (m_coralStationTag == -1)
       return;
 
-    Pose2d tagPose = AprilTagUtils.getAprilTagPose3d(tagId).toPose2d();
+    Pose2d tagPose = AprilTagUtils.getAprilTagPose3d(m_coralStationTag).toPose2d();
     m_targetPose = tagPose.transformBy(m_offset);
 
     if (!m_swerveSubsystem.isRedAlliance()) {

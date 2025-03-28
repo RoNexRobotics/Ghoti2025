@@ -26,7 +26,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -227,10 +226,11 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public void drive(double translationX, double translationY, double headingX, double headingY, double elevatorHeight) {
 
-    if (Math.abs(ElevatorConstants.kL4HeightInches - elevatorHeight) < 4) {
-      translationX = translationX * 0.5;
-      translationY = translationY * 0.5;
-    }
+    double elevatorMultiplier = 0.5 + ((ElevatorConstants.kMaximumHeightInches - elevatorHeight)
+        / (ElevatorConstants.kMaximumHeightInches - ElevatorConstants.kMinimumHeightInches)) * 0.5;
+
+    translationX *= elevatorMultiplier;
+    translationY *= elevatorMultiplier;
 
     Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX,
         translationY), 0.8);
@@ -294,23 +294,5 @@ public class SwerveSubsystem extends SubsystemBase {
   public boolean isRedAlliance() {
     var alliance = DriverStation.getAlliance();
     return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
-  }
-
-  public void moduleStateTest1() {
-    m_swerve.setModuleStates(new SwerveModuleState[] {
-        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-        new SwerveModuleState(0, Rotation2d.fromDegrees(0))
-    }, false);
-  }
-
-  public void moduleStateTest2() {
-    m_swerve.setModuleStates(new SwerveModuleState[] {
-        new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
-        new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
-        new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
-        new SwerveModuleState(0, Rotation2d.fromDegrees(90))
-    }, false);
   }
 }

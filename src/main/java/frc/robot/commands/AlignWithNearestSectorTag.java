@@ -17,9 +17,9 @@ public class AlignWithNearestSectorTag extends Command {
   private final SwerveSubsystem m_swerveSubsystem;
 
   private final ProfiledPIDController m_xController = new ProfiledPIDController(2, 0, 0,
-      new TrapezoidProfile.Constraints(0.1, 0.1));
+      new TrapezoidProfile.Constraints(2, 0.8));
   private final ProfiledPIDController m_yController = new ProfiledPIDController(2, 0, 0,
-      new TrapezoidProfile.Constraints(0.1, 0.1));
+      new TrapezoidProfile.Constraints(2, 0.8));
 
   private final Transform2d m_offset;
 

@@ -21,6 +21,7 @@ import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.AlignWithNearestCoralStationCmd;
 import frc.robot.commands.AlignWithNearestSectorTag;
+import frc.robot.commands.BounceElevatorCmd;
 import frc.robot.commands.ElevatorManualCmd;
 import frc.robot.commands.ElevatorPIDCmd;
 import frc.robot.commands.ShootCoralCmd;
@@ -72,8 +73,7 @@ public class RobotContainer {
 
                 m_swerveSubsystem.setDefaultCommand(allianceRelativeDirectAngle);
 
-                m_elevatorSubsystem
-                                .setDefaultCommand(new ElevatorPIDCmd(m_elevatorSubsystem));
+                m_elevatorSubsystem.setDefaultCommand(new ElevatorPIDCmd(m_elevatorSubsystem));
 
                 // Send the auto chooser to the dashboard
                 m_autoChooser = AutoBuilder.buildAutoChooser();
@@ -83,13 +83,19 @@ public class RobotContainer {
         }
 
         private void registerNamedCommands() {
-                NamedCommands.registerCommand("AlignWithNearestSectorTag",
+                NamedCommands.registerCommand("AlignWithNearestSectorTagLeft",
                                 new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
-                                                Units.inchesToMeters(24),
-                                                Units.inchesToMeters(0),
+                                                Units.inchesToMeters(13.625),
+                                                Units.inchesToMeters(3),
                                                 Rotation2d.fromDegrees(-90))));
 
-                NamedCommands.registerCommand("AlginWithNearestCoralStation",
+                NamedCommands.registerCommand("AlignWithNearestSectorTagRight",
+                                new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
+                                                Units.inchesToMeters(13.625),
+                                                Units.inchesToMeters(16.5),
+                                                Rotation2d.fromDegrees(-90))));
+
+                NamedCommands.registerCommand("AlignWithNearestCoralStation",
                                 new AlignWithNearestCoralStationCmd(m_swerveSubsystem, new Transform2d(
                                                 Units.inchesToMeters(17.625),
                                                 Units.inchesToMeters(0),
@@ -105,7 +111,10 @@ public class RobotContainer {
                 NamedCommands.registerCommand("Elevator L4", new InstantCommand(
                                 () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kL4HeightInches)));
 
-                NamedCommands.registerCommand("Shoot Coral", new ShootCoralCmd(m_shooterSubsystem));
+                NamedCommands.registerCommand("Shoot Coral",
+                                new ShootCoralCmd(m_shooterSubsystem, () -> 1, () -> true));
+
+                NamedCommands.registerCommand("BounceElevator", new BounceElevatorCmd(m_elevatorSubsystem));
         }
 
         private void configureBindings() {
@@ -116,15 +125,16 @@ public class RobotContainer {
                                                 Units.inchesToMeters(0),
                                                 Rotation2d.fromDegrees(180))));
 
-                m_driverController.y().whileTrue(new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
-                                Units.inchesToMeters(17.625),
-                                Units.inchesToMeters(0),
-                                Rotation2d.fromDegrees(-90))));
+                m_driverController.leftBumper()
+                                .whileTrue(new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
+                                                Units.inchesToMeters(13.625),
+                                                Units.inchesToMeters(3),
+                                                Rotation2d.fromDegrees(-90))));
 
                 m_driverController.rightBumper()
                                 .whileTrue(new AlignWithNearestSectorTag(m_swerveSubsystem, new Transform2d(
-                                                Units.inchesToMeters(15),
-                                                Units.inchesToMeters(0),
+                                                Units.inchesToMeters(13.625),
+                                                Units.inchesToMeters(16.5),
                                                 Rotation2d.fromDegrees(-90))));
 
                 m_driverController.povDown().onTrue(m_climberSubsystem.setSpeedCommand(-0.6))
@@ -144,15 +154,19 @@ public class RobotContainer {
                                 .onFalse(new ElevatorManualCmd(m_elevatorSubsystem, () -> 0));
 
                 m_operatorController.button(1).onTrue(new InstantCommand(
-                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kL1HeightInches)));
+                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kL1HeightInches),
+                                m_elevatorSubsystem));
                 m_operatorController.button(4).onTrue(new InstantCommand(() -> m_elevatorSubsystem
-                                .setPIDSetpoint(ElevatorConstants.kL2HeightInches)));
+                                .setPIDSetpoint(ElevatorConstants.kL2HeightInches), m_elevatorSubsystem));
                 m_operatorController.button(2).onTrue(new InstantCommand(() -> m_elevatorSubsystem
-                                .setPIDSetpoint(ElevatorConstants.kL3HeightInches)));
+                                .setPIDSetpoint(ElevatorConstants.kL3HeightInches), m_elevatorSubsystem));
                 m_operatorController.button(3).onTrue(new InstantCommand(
-                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kL4HeightInches)));
+                                () -> m_elevatorSubsystem.setPIDSetpoint(ElevatorConstants.kL4HeightInches),
+                                m_elevatorSubsystem));
 
-                m_operatorController.button(8).onTrue(new ShootCoralCmd(m_shooterSubsystem));
+                m_operatorController.button(8).whileTrue(new ShootCoralCmd(m_shooterSubsystem, () -> 1, () -> false));
+
+                m_operatorController.button(7).whileTrue(new ShootCoralCmd(m_shooterSubsystem, () -> -1, () -> false));
         }
 
         public Command getAutonomousCommand() {

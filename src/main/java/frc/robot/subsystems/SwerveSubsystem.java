@@ -73,7 +73,7 @@ public class SwerveSubsystem extends SubsystemBase {
     m_swerve.setAngularVelocityCompensation(true, true, 0.1);
     m_swerve.setModuleEncoderAutoSynchronize(true, 1);
     m_swerve.setAutoCenteringModules(false);
-    m_swerve.setMotorIdleMode(true);
+    m_swerve.setMotorIdleMode(false);
 
     if (SwerveDriveTelemetry.isSimulation) {
       m_swerve.resetOdometry(new Pose2d(7.588, 4.037, Rotation2d.fromDegrees(0)));

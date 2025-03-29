@@ -29,7 +29,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   private final Encoder m_encoder = new Encoder(0, 1, true, EncodingType.k4X);
 
   private final ProfiledPIDController m_pidController = new ProfiledPIDController(0.8, 0, 0,
-      new TrapezoidProfile.Constraints(28, 30)); // 42
+      new TrapezoidProfile.Constraints(42, 24)); // 42
   // TODO: Make elevator faster
 
   private final Timer m_calibrationTimer = new Timer();
